@@ -16,3 +16,7 @@
 .app__headerImage{
   object-fit: contain;
 }
+
+.app__posts{
+  padding-top: 1rem;
+}

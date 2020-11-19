@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import './Post.css'
 import Badge from '@material-ui/core/Badge';
 import Avatar from '@material-ui/core/Avatar';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
+import { db } from './firebase';
 
 const StyledBadge = withStyles((theme) => ({
     badge: {
@@ -50,8 +51,24 @@ const StyledBadge = withStyles((theme) => ({
     },
   }));  
 
-function Post({username, imageUrl, caption}) {
+function Post({username, imageUrl, caption, postId}) {
     const classes = useStyles();
+    const [comments, setComments] = useState([])
+    const [comment, setComment] = useState("")
+
+    useEffect(() => {
+        let unsubscribe;
+        if (postId) {
+            unsubscribe = db.collection("posts").doc(postId).collection("comments").onSnapshot(snapshot => {
+                setComments(snapshot.docs.map(doc => doc.data()))
+            })
+        }
+    }, [postId])
+
+    const postComment = () => {
+
+    }
+
     return (
         <div className="post">
             {/* header => avatar + username */}
@@ -74,6 +91,25 @@ function Post({username, imageUrl, caption}) {
             <img className="post__image" src={imageUrl} alt="" />
             {/* username: caption */}
             <h4 className="post__text"><strong>{username}</strong> {caption}</h4>
+
+            <div className="post__comments">
+                {
+                    comments.map(comment => {
+                        <p>
+                            <strong>{comment.username}</strong>  {comment.text}
+                        </p>
+                    })
+                }
+            </div>
+
+            <form className="post__commentbox">
+                <input className="post__input"
+                placeholder="Add a comment..."
+                type="text"
+                value={comment}
+                onChange={e => setComment(e.target.value)}/>
+                <button disabled={!comment} className="post__button" onClick={postComment}>Post</button>
+            </form>
         </div>
     )
 }

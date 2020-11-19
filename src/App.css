@@ -11,6 +11,8 @@
   background-color: white;
   padding: 20px;
   border-bottom: solid 1px lightgray;
+  display: flex;
+  justify-content: space-between;
 }
 
 .app__headerImage{
@@ -18,5 +20,17 @@
 }
 
 .app__posts{
-  padding-top: 1rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.app__postsright{
+  /* margin-left: 20px; */
+}
+
+.app__signup{
+  display: flex;
+  flex-direction: column;
 }

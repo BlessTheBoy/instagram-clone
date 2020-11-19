@@ -60,7 +60,9 @@ function App() {
     const list = db.collection("posts").orderBy('timestamp', 'desc').onSnapshot(snapshot => {
       setposts(snapshot.docs.map(doc => ({id:doc.id, post:doc.data()})))
     })
-    return list
+    return () => {
+      list()
+    }
   }, [])
 
   const signUp = (event) => {
@@ -167,7 +169,7 @@ function App() {
         <div className="app__postsleft">
           {
             posts.map(({id, post}) => {
-              return <Post key={id} postId={id} username={post.username} caption={post.caption} imageUrl={post.imageUrl} />
+              return <Post key={id} user={user} postId={id} username={post.username} caption={post.caption} imageUrl={post.imageUrl} />
             })
           }
         </div>

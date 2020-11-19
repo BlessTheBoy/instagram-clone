@@ -4,6 +4,7 @@ import Badge from '@material-ui/core/Badge';
 import Avatar from '@material-ui/core/Avatar';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
 import { db } from './firebase';
+import firebase from "firebase"
 
 const StyledBadge = withStyles((theme) => ({
     badge: {
@@ -51,7 +52,7 @@ const StyledBadge = withStyles((theme) => ({
     },
   }));  
 
-function Post({username, imageUrl, caption, postId}) {
+function Post({user, username, imageUrl, caption, postId}) {
     const classes = useStyles();
     const [comments, setComments] = useState([])
     const [comment, setComment] = useState("")
@@ -59,14 +60,25 @@ function Post({username, imageUrl, caption, postId}) {
     useEffect(() => {
         let unsubscribe;
         if (postId) {
-            unsubscribe = db.collection("posts").doc(postId).collection("comments").onSnapshot(snapshot => {
-                setComments(snapshot.docs.map(doc => doc.data()))
+            unsubscribe = db.collection("posts").doc(postId).collection("comments").orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+                setComments(snapshot.docs.map(doc => ({id: doc.id, data: doc.data()})))
             })
+        }
+
+        return () => {
+            unsubscribe()
         }
     }, [postId])
 
-    const postComment = () => {
+    const postComment = (e) => {
+        e.preventDefault()
+        db.collection("posts").doc(postId).collection("comments").add({
+            text: comment,
+            username: user.displayName,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        })
 
+        setComment("")
     }
 
     return (
@@ -94,22 +106,24 @@ function Post({username, imageUrl, caption, postId}) {
 
             <div className="post__comments">
                 {
-                    comments.map(comment => {
-                        <p>
-                            <strong>{comment.username}</strong>  {comment.text}
+                    comments.map(com => {
+                        return <p key={com.id}>
+                            <strong>{com.data.username}</strong>  {com.data.text}
                         </p>
                     })
                 }
             </div>
 
-            <form className="post__commentbox">
-                <input className="post__input"
-                placeholder="Add a comment..."
-                type="text"
-                value={comment}
-                onChange={e => setComment(e.target.value)}/>
-                <button disabled={!comment} className="post__button" onClick={postComment}>Post</button>
-            </form>
+            {user && 
+                <form className="post__commentbox">
+                    <input className="post__input"
+                    placeholder="Add a comment..."
+                    type="text"
+                    value={comment}
+                    onChange={e => setComment(e.target.value)}/>
+                    <button type="submit" disabled={!comment} className="post__button" onClick={postComment}>Post</button>
+                </form>
+            }
         </div>
     )
 }
